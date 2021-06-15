@@ -514,27 +514,33 @@ def getNewPrivkey(steamID):
 def authenticate(userTSMId):
     auth_data_request = session.get(server_url + "/auth/get-encrypted-data/" + userTSMId)
     auth_data_json = auth_data_request.json()
-    encrypted_data = auth_data_json['data']
-    # private_key = serialization.load_pem_private_key(
-    #     encryptionKeys[userTSMId],
-    #     password=None,
-    #     backend=default_backend()
-    # )
-    # decrypted_data = private_key.decrypt(encrypted_data)
+    if "data" in auth_data_json:
+        encrypted_data = auth_data_json['data']
+        # private_key = serialization.load_pem_private_key(
+        #     encryptionKeys[userTSMId],
+        #     password=None,
+        #     backend=default_backend()
+        # )
+        # decrypted_data = private_key.decrypt(encrypted_data)
 
-    rsa_key = RSA.importKey(encryptionKeys[userTSMId])
-    cipher = PKCS1_OAEP.new(rsa_key)
-    raw_cipher_data = b64decode(encrypted_data)
-    decrypted_data = cipher.decrypt(raw_cipher_data).decode('utf-8')
+        rsa_key = RSA.importKey(encryptionKeys[userTSMId])
+        cipher = PKCS1_OAEP.new(rsa_key)
+        raw_cipher_data = b64decode(encrypted_data)
+        decrypted_data = cipher.decrypt(raw_cipher_data).decode('utf-8')
 
-    login_request = session.post(server_url + "/auth/app-login/", data={'username': userTSMId, 'password': decrypted_data})
-    if login_request.status_code == 200:
-        ac.log("TSM | success, logged in")
+        login_request = session.post(server_url + "/auth/app-login/", data={'username': userTSMId, 'password': decrypted_data})
+        if login_request.status_code == 200:
+            ac.log("TSM | success, logged in")
+        else:
+            ac.log("TSM Auth | Error: decrypted data does not match server")
+            time.sleep(2)
+            ac.log("TSM Auth | Retrying authentication")
+            authenticate(getNewPrivkey(user_steamid))
     else:
-        ac.log("TSM Auth | Error: decrypted data does not match server")
+        ac.log("TSM Auth | Error: Issue with server's public key")
         time.sleep(2)
         ac.log("TSM Auth | Retrying authentication")
-        authenticate(getNewPrivkey(user_steamid))
+        authenticate(getNewPrivkey(user_steamid)) 
 
 
 def getUserSteamId():
