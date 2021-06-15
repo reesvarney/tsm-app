@@ -1115,7 +1115,8 @@ def updateSetupsListingTable(setups):
                 else:
                     totalRating = 0
                     for rating in setup['ratings']:
-                        totalRating += rating['rating']
+                        # I think this will create an average, otherwise i have no idea what this code was doing
+                        totalRating += (rating['rating'] / len(setup['ratings'])) 
 
                 if totalRating == None:
                     ac.setText(labelCtrl, 'n/a')

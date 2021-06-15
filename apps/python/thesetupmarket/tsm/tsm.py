@@ -53,7 +53,7 @@ except Exception as e:
     ac.log('TheSetupMarket logs | Error: Could not import Crypto ' + traceback.format_exc())
     raise
 
-server_url = "http://127.0.0.1"
+server_url = "http://unofficialsetupmarket.herokuapp.com"
 sim_id = "null"
 user_steamid = ""
 session = requests.Session()
